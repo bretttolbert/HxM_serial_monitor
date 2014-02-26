@@ -7,6 +7,7 @@ import datetime
 import random
 
 #constants
+COM_PORT = 'COM40'
 STX = 0x02
 ETX = 0x03
 MSG_ID_HXM = 0x26
@@ -21,9 +22,6 @@ TARGET_HR_BPM = 120
 #dev flags:
 SPOOF_RX = False
 EXIT_AFTER_ONE_PACKET = False
-
-#from PySide.QtCore import *
-#from PySide.QtGui import *
 
 class HxMPacket:
     def __init__(self, dlc, payload, crc):
@@ -160,6 +158,7 @@ class HxMListener:
                 self.last_feedback_ts = now
         
     def rx_hxm_pkt(self, ser):
+        """Receives everything between STX and ETX"""
         pkt = ''
         print 'rx_hxm_pkt'
         #(assumes Byte 0 - STX has already been received)
@@ -192,16 +191,7 @@ class HxMListener:
         c = ser.read()
         crc = ord(c)
         print 'CRC:', hex(crc)
-        
-        #Byte 59 OR len(PAYLOAD)+2 - ETX
-        """
-        c = ser.read()
-        if ord(c) != ETX:
-            print 'Error: Expected ETX, received', hex(ord(c))
-        else:
-            print 'Rx ETX'
-        """
-        
+                
         return (dlc, payload, crc)
         
     def listen(self):
@@ -218,7 +208,7 @@ class HxMListener:
         else:
             #read a packet off the wire
             with Serial(
-                port='COM40', 
+                port=COM_PORT, 
                 baudrate=9600, 
                 bytesize=EIGHTBITS, 
                 parity=PARITY_NONE, 
@@ -255,12 +245,7 @@ class HxMListener:
                         break
     
 if __name__ == '__main__':
-    #app = QApplication(sys.argv)
-    #label = QLabel("<h1>Hello</h1> <font color=red size=40><h2>world</h2></font>")
-    #label.show()
     listener = HxMListener()
     listener.listen()
-    #app.exec_()
-    #sys.exit()
 
     
